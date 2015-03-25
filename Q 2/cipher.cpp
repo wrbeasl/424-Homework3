@@ -7,18 +7,24 @@ void Encrypt(std::string inputFile, std::string outputFile, int cipherType, int 
 
 	std::ofstream outFile (outputFile.c_str());
 	std::ifstream inFile  (inputFile.c_str());
+
+
+
 	std::cout << "keyValue: " << keyValue << std::endl;
+	if(inFile.is_open() && outFile.is_open()){
 	if(cipherType == 0){
 		std::string line;
 		if(inFile.is_open()){
 			while( getline(inFile, line) ){
 				char* temp = new char(line.length() + 1);
 				for(unsigned int i = 0; i < line.length(); ++i){
-					temp[i] = line[i]+keyValue;
-					std::cout << temp[i] << std::endl;
+					if(line[i] >= 'A' && line[i] <= 'Z'){
+						temp[i] = (char)(((line[i] + keyValue - 'A' + 26) % 26) + 'A');
+					} else if(line[i] >= 'a' && line[i] <= 'z'){
+						temp[i] = (char)(((line[i] + keyValue - 'a' + 26) % 26) + 'a');						
+					}
 				}
-				std::cout << temp << std::endl;
-				outFile << temp;
+				outFile << temp << "\n";
 				delete[] temp;
 			}
 		}
@@ -30,23 +36,21 @@ void Encrypt(std::string inputFile, std::string outputFile, int cipherType, int 
 		std::string line;
 		if(inFile.is_open()){
 			while( getline(inFile, line) ){
-				char* temp = new char(line.length() + 1);
-				int j = 0;
-
-				/* Fix this algorithm, needs to move around the characters based
-				       on the keyValue */
-				for(unsigned int i = 0; i < line.length(); ++i){
-					if(i >= line.length()/2){
-						temp[i] = line[j];
-						j++;
-						printf("%c\n", temp[i]);
-					} else {
-						temp[i] = line[line.length()/2 + i];
-						printf("%c\n", temp[i]);
-					}
+				int j, i;
+				char * a = new char[line.length() + 1];
+				char * b = new char[line.length() + 1];
+				char * temp = new char[line.length() + 1];
+				for(j = 0,i = 0; i < line.length(); ++i){
+					if(i%2 == 0)
+						temp[j++] = line[i];
 				}
-				std::cout << temp << std::endl;
-				outFile << temp;
+
+				for(i=0;i<line.length();++i){
+					if(i%2 == 1)
+						temp[j++] = line[i];
+				}
+				temp[j] = '\0';
+				outFile << temp << "\n";
 				delete[] temp;
 			} 
 		outFile.close();
@@ -54,21 +58,18 @@ void Encrypt(std::string inputFile, std::string outputFile, int cipherType, int 
 		}
 
 	}
+} else {
+	std::cout << "Error: Failed to open either the input or output file\n";
+	exit(-1);
 }
-
-void Decrypt(std::string inputFile, std::string outputFile, int cipherType, int keyValue){
-
 }
-
 
 int main(int argc, char** argv){
-	if(argc != 3){
-		perror("Error: syntax is: ./encrpyt <input file> <output file>\n");
+	if(argc != 5){
+		perror("Error: syntax is: ./encrpyt <input file> <output file> <Encryption Type> <Key Value>\n");
 		exit(-1);
 	}
-
-	Encrypt((std::string)argv[1], (std::string)argv[2], 0, 1);
-
-	Encrypt(argv[1], argv[2], 1, 1);
+	
+	Encrypt(argv[1], argv[2], atoi(argv[3]), atoi(argv[4]));	
 
 }
